@@ -1,12 +1,11 @@
 import java.io.*;
-import java.util.InputMismatchException;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 /**
- * Number Guessing Game with Timer, Highscore, and Replay Option
+ * Number Guessing Game with Timer, Highscore, Replay Option, and Guess Tracking
  * Created by Armin
  */
+
 public class NumberGuessGame {
     private static final String HIGH_SCORE_FILE = "highscores.txt";
     private static int targetNumber;
@@ -15,7 +14,8 @@ public class NumberGuessGame {
     private static int startRange;
     private static int endRange;
     private static Scanner scanner = new Scanner(System.in);
-    private static final int HINT_THRESHOLD = 5;  // Number of incorrect guesses before giving a hint
+    private static final int HINT_THRESHOLD = 5; // Number of incorrect guesses before giving a hint
+    private static ArrayList<Integer> pastGuesses = new ArrayList<>(); // Store past guesses
 
     public static void main(String[] args) {
         System.out.println("Welcome to the Number Guessing Game with Timer and Replay Option!");
@@ -34,6 +34,7 @@ public class NumberGuessGame {
     // Setup the game by defining range and initializing target number
     private static void setupGame() {
         System.out.println("\nStarting a new game...");
+        pastGuesses.clear(); // Clear past guesses for a new game
 
         // Set up the range for the game
         while (true) {
@@ -41,7 +42,7 @@ public class NumberGuessGame {
             endRange = getRange("Enter the end of the range: ");
 
             if (startRange < endRange) {
-                break;  // Valid range entered
+                break; // Valid range entered
             } else {
                 System.out.println("Invalid range. Start of range should be less than end of range.");
             }
@@ -61,12 +62,20 @@ public class NumberGuessGame {
 
     // Play the game
     private static void playGame() {
-        double startTime = System.currentTimeMillis();  // Start the timer
+        double startTime = System.currentTimeMillis(); // Start the timer
         boolean guessedCorrectly = false;
 
         while (!guessedCorrectly) {
             int guess = getGuess();
             guessCount++;
+
+            if (pastGuesses.contains(guess)) {
+                System.out.println("You already guessed that number! Try something new.");
+                guessCount--; // Don't penalize for repeating guesses
+                continue;
+            } else {
+                pastGuesses.add(guess); // Add the new guess to the list
+            }
 
             if (guess < targetNumber) {
                 System.out.println("Too low! Try again.");
@@ -79,8 +88,8 @@ public class NumberGuessGame {
             }
         }
 
-        double endTime = System.currentTimeMillis();  // End the timer
-        double timeTaken = (endTime - startTime) / 1000;  // Time taken in seconds
+        double endTime = System.currentTimeMillis(); // End the timer
+        double timeTaken = (endTime - startTime) / 1000; // Time taken in seconds
 
         System.out.println("Congratulations! You guessed the number in " + guessCount + " attempts."); // Tells user how many tries it took them to guess the number
         System.out.println("Time taken: " + timeTaken + " seconds."); // Tells user time it took to guess the number
@@ -109,7 +118,7 @@ public class NumberGuessGame {
                 return scanner.nextInt();
             } catch (InputMismatchException e) {
                 System.out.println("Invalid input. Please enter an integer.");
-                scanner.next();  // Clear invalid input
+                scanner.next(); // Clear invalid input
             }
         }
     }
@@ -122,12 +131,12 @@ public class NumberGuessGame {
                 return scanner.nextInt();
             } catch (InputMismatchException e) {
                 System.out.println("That's not a number! Please enter a valid integer.");
-                scanner.next();  // Clear invalid input
+                scanner.next(); // Clear invalid input
             }
         }
     }
 
-    // Provide a hint based on the number of incorrect guesses
+    // Give user a hint based on the number of incorrect guesses
     private static void giveHint(int guess) {
         if (guessCount >= HINT_THRESHOLD) {
             int difference = Math.abs(guess - targetNumber);
@@ -161,12 +170,12 @@ public class NumberGuessGame {
                 }
             }
         } catch (IOException | NumberFormatException e) {
-            // No error message is shown; silently ignore if the file or format is incorrect
+            // No error message is shown
         }
-        return Integer.MAX_VALUE;  // If no high score found, return a large default value
+        return Integer.MAX_VALUE; // If no high score found, return a large value
     }
 
-    // Save the new high score for a specific range to the file "highscores.txt"
+    // Save the new high score for a specific range to the file
     private static void saveHighScore(int start, int end, int newHighScore) {
         StringBuilder updatedScores = new StringBuilder();
         boolean found = false;
@@ -208,4 +217,3 @@ public class NumberGuessGame {
         }
     }
 }
-
