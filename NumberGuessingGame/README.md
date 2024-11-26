@@ -35,7 +35,6 @@ Steps:
 - Expected Behavior: Program would print "Too high!" and ask for another guess.
 
 ---
-和
 
 ### 5. Correct Guess Test Case
 - Description: Check whether program will exit game and flash correct message upon correctly guessing the number.
