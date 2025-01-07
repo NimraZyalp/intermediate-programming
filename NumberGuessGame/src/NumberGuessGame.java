@@ -1,10 +1,13 @@
-import java.io.*;
-import java.util.*;
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.InputMismatchException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
-/**
- * Number Guessing Game with Timer, Highscore, Replay Option, and Guess Tracking
- * Created by Armin
- */
 
 public class NumberGuessGame {
     private static final String HIGH_SCORE_FILE = "highscores.txt";
@@ -19,16 +22,26 @@ public class NumberGuessGame {
 
     public static void main(String[] args) {
         System.out.println("Welcome to the Number Guessing Game with Timer and Replay Option!");
-
-        boolean playAgain;
-        do {
-            setupGame();
-            playGame();
-            playAgain = askReplay();
-        } while (playAgain);
-
+        playGameRecursive(0); // Start with 0 replays
         System.out.println("Thank you for playing!");
         scanner.close();
+    }
+
+    // Recursive method for playing the game
+    private static void playGameRecursive(int replayCount) {
+        if (replayCount >= 3) { // Limit to 3 replays
+            System.out.println("You have reached the maximum number of replays (3).");
+            return;
+        }
+
+        setupGame();
+        playGame();
+
+        System.out.print("Do you want to play again? (yes/no): ");
+        String response = scanner.next().trim().toLowerCase();
+        if (response.equals("yes")) {
+            playGameRecursive(replayCount + 1); // Increment replay count and call recursively
+        }
     }
 
     // Setup the game by defining range and initializing target number
@@ -101,13 +114,6 @@ public class NumberGuessGame {
         } else {
             System.out.println("Sorry, you didn't beat the high score. Try again!");
         }
-    }
-
-    // Ask if the player wants to play again
-    private static boolean askReplay() {
-        System.out.print("Do you want to play again? (yes/no): ");
-        String response = scanner.next().trim().toLowerCase();
-        return response.equals("yes");
     }
 
     // Function to retrieve and validate the range
