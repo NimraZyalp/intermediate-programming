@@ -1,2 +1,1 @@
-Range: [1 - 10] | High Score: 1 guesses
-Range: [6 - 10] | High Score: 1 guesses
+Range: [1 - 10] | High Score: 3 guesses

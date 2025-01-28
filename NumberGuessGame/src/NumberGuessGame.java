@@ -7,10 +7,12 @@ import java.io.FileReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-
+import java.util.HashMap;
+import java.util.Map;
 
 public class NumberGuessGame {
     private static final String HIGH_SCORE_FILE = "highscores.txt";
+    private static final String USER_SCORES_FILE = "user_scores.json";
     private static int targetNumber;
     private static int guessCount;
     private static int highScore;
@@ -19,10 +21,14 @@ public class NumberGuessGame {
     private static Scanner scanner = new Scanner(System.in);
     private static final int HINT_THRESHOLD = 5; // Number of incorrect guesses before giving a hint
     private static ArrayList<Integer> pastGuesses = new ArrayList<>(); // Store past guesses
+    private static HashMap<String, ArrayList<Integer>> userScores = new HashMap<>(); // Store usernames and their scores
 
     public static void main(String[] args) {
         System.out.println("Welcome to the Number Guessing Game with Timer and Replay Option!");
+        loadUserScores(); // Load user scores from file
         playGameRecursive(0); // Start with 0 replays
+        saveUserScores(); // Save user scores to file
+        printUserScoresJson(); // Print user scores in JSON format
         System.out.println("Thank you for playing!");
         scanner.close();
     }
@@ -78,6 +84,9 @@ public class NumberGuessGame {
         double startTime = System.currentTimeMillis(); // Start the timer
         boolean guessedCorrectly = false;
 
+        System.out.print("Enter your username: ");
+        String username = scanner.next().trim();
+
         while (!guessedCorrectly) {
             int guess = getGuess();
             guessCount++;
@@ -106,6 +115,12 @@ public class NumberGuessGame {
 
         System.out.println("Congratulations! You guessed the number in " + guessCount + " attempts."); // Tells user how many tries it took them to guess the number
         System.out.println("Time taken: " + timeTaken + " seconds."); // Tells user time it took to guess the number
+
+        // Store the user's score
+        if (!userScores.containsKey(username)) {
+            userScores.put(username, new ArrayList<>());
+        }
+        userScores.get(username).add(guessCount);
 
         // Check and update the high score if necessary
         if (guessCount < highScore) {
@@ -221,5 +236,45 @@ public class NumberGuessGame {
         } catch (IOException e) {
             System.out.println("Error saving high score.");
         }
+    }
+
+    // Load user scores from file
+    private static void loadUserScores() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(USER_SCORES_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(":");
+                String username = parts[0].trim();
+                String[] scores = parts[1].replace("[", "").replace("]", "").split(",");
+                ArrayList<Integer> scoreList = new ArrayList<>();
+                for (String score : scores) {
+                    scoreList.add(Integer.parseInt(score.trim()));
+                }
+                userScores.put(username, scoreList);
+            }
+        } catch (IOException | NumberFormatException e) {
+            // No error message is shown
+        }
+    }
+
+    // Save user scores to file
+    private static void saveUserScores() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(USER_SCORES_FILE))) {
+            for (Map.Entry<String, ArrayList<Integer>> entry : userScores.entrySet()) {
+                writer.write(entry.getKey() + ": " + entry.getValue().toString() + "\n");
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving user scores.");
+        }
+    }
+
+    // Print user scores in JSON format
+    private static void printUserScoresJson() {
+        System.out.println("User Scores in JSON format:");
+        System.out.println("{");
+        for (Map.Entry<String, ArrayList<Integer>> entry : userScores.entrySet()) {
+            System.out.println("  \"" + entry.getKey() + "\": " + entry.getValue() + ",");
+        }
+        System.out.println("}");
     }
 }
