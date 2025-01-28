@@ -239,34 +239,64 @@ public class NumberGuessGame {
     }
 
     // Load user scores from file
-    private static void loadUserScores() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(USER_SCORES_FILE))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(":");
-                String username = parts[0].trim();
-                String[] scores = parts[1].replace("[", "").replace("]", "").split(",");
-                ArrayList<Integer> scoreList = new ArrayList<>();
-                for (String score : scores) {
-                    scoreList.add(Integer.parseInt(score.trim()));
-                }
-                userScores.put(username, scoreList);
+private static void loadUserScores() {
+    try (BufferedReader reader = new BufferedReader(new FileReader(USER_SCORES_FILE))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+            line = line.trim(); // Remove leading/trailing whitespace
+            if (line.isEmpty() || line.equals("{") || line.equals("}")) {
+                continue; // Skip empty lines or JSON brackets
             }
-        } catch (IOException | NumberFormatException e) {
-            // No error message is shown
-        }
-    }
 
-    // Save user scores to file
-    private static void saveUserScores() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(USER_SCORES_FILE))) {
-            for (Map.Entry<String, ArrayList<Integer>> entry : userScores.entrySet()) {
-                writer.write(entry.getKey() + ": " + entry.getValue().toString() + "\n");
+            // Remove trailing comma if present
+            if (line.endsWith(",")) {
+                line = line.substring(0, line.length() - 1);
             }
-        } catch (IOException e) {
-            System.out.println("Error saving user scores.");
+
+            String[] parts = line.split(":");
+            if (parts.length < 2) {
+                System.out.println("Skipping invalid line: " + line);
+                continue; // Skip lines that don't have a valid username:score format
+            }
+
+            String username = parts[0].trim().replace("\"", ""); // Remove quotes from username
+            String scoresString = parts[1].trim().replace("[", "").replace("]", ""); // Remove brackets
+            String[] scoresArray = scoresString.split(",");
+
+            ArrayList<Integer> scoreList = new ArrayList<>();
+            for (String score : scoresArray) {
+                try {
+                    scoreList.add(Integer.parseInt(score.trim()));
+                } catch (NumberFormatException e) {
+                    System.out.println("Skipping invalid score for user " + username + ": " + score);
+                }
+            }
+
+            userScores.put(username, scoreList);
         }
+    } catch (IOException e) {
+        System.out.println("No existing user scores file found. A new one will be created.");
     }
+}
+
+    // Save user scores to file in JSON format
+private static void saveUserScores() {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(USER_SCORES_FILE))) {
+        writer.write("{"); // Start of JSON
+        int size = userScores.size();
+        int count = 0;
+        for (Map.Entry<String, ArrayList<Integer>> entry : userScores.entrySet()) {
+            writer.write("\n  \"" + entry.getKey() + "\": " + entry.getValue()); // Write username and scores
+            if (count < size - 1) {
+                writer.write(","); // Add comma between entries
+            }
+            count++;
+        }
+        writer.write("\n}"); // End of JSON 
+    } catch (IOException e) {
+        System.out.println("Error saving user scores.");
+    }
+}
 
     // Print user scores in JSON format
     private static void printUserScoresJson() {
