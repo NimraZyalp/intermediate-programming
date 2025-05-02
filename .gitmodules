@@ -1,0 +1,3 @@
+[submodule "SpendingGame"]
+	path = SpendingGame
+	url = https://github.com/NimraZyalp/plane-spending-game.git
